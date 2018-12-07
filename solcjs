@@ -5,8 +5,8 @@ var originalUncaughtExceptionListeners = process.listeners("uncaughtException");
 
 var fs = require('fs-extra');
 var path = require('path');
+
 var solc = require('./index.js');
-var smtchecker = require('./smtchecker.js');
 // FIXME: remove annoying exception catcher of Emscripten
 //        see https://github.com/chriseth/browser-solidity/issues/167
 process.removeAllListeners('uncaughtException');
@@ -54,29 +54,6 @@ function abort (msg) {
 if (argv['standard-json']) {
   var input = fs.readFileSync(process.stdin.fd).toString('utf8');
   var output = solc.compileStandardWrapper(input);
-
-  try {
-    var inputJSON = smtchecker.handleSMTQueries(JSON.parse(input), JSON.parse(output));
-    if (inputJSON) {
-      output = solc.compileStandardWrapper(JSON.stringify(inputJSON));
-    }
-  }
-  catch (e) {
-    var addError = {
-      component: "general",
-      formattedMessage: e.toString(),
-      message: e.toString(),
-      type: "Warning"
-    };
-
-    var outputJSON = JSON.parse(output);
-    if (!outputJSON.errors) {
-      outputJSON.errors = []
-    }
-    outputJSON.errors.push(addError);
-    output = JSON.stringify(outputJSON);
-  }
-
   console.log(output);
   process.exit(0);
 } else if (files.length === 0) {

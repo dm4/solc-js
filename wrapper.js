@@ -1,8 +1,10 @@
 var assert = require('assert');
-var translate = require('./translate.js');
-var requireFromString = require('require-from-string');
 var https = require('https');
 var MemoryStream = require('memorystream');
+var requireFromString = require('require-from-string');
+
+var smtchecker = require('./smtchecker.js');
+var translate = require('./translate.js');
 
 function setupMethods (soljson) {
   var copyString = function (str, ptr) {
@@ -87,7 +89,27 @@ function setupMethods (soljson) {
   // Expects a Standard JSON I/O but supports old compilers
   var compileStandardWrapper = function (input, readCallback) {
     if (compileStandard !== null) {
-      return compileStandard(input, readCallback);
+      var output = JSON.parse(compileStandard(input, readCallback));
+      try {
+        input = smtchecker.handleSMTQueries(JSON.parse(input), output);
+        if (input !== null) {
+          output = JSON.parse(compileStandard(JSON.stringify(input), readCallback));
+        }
+      } catch (e) {
+        var addError = {
+          'component': 'general',
+          'formattedMessage': e.toString(),
+          'message': e.toString(),
+          'type': 'Warning'
+        };
+
+        if (!output.errors) {
+          output.errors = [];
+        }
+        output.errors.push(addError);
+      }
+
+      return JSON.stringify(output);
     }
 
     function formatFatalError (message) {
