@@ -1,6 +1,6 @@
 {
   "name": "solc",
-  "version": "0.5.1",
+  "version": "1.2.4",
   "description": "Solidity compiler",
   "main": "index.js",
   "bin": {
@@ -41,6 +41,7 @@
   "homepage": "https://github.com/ethereum/solc-js#readme",
   "dependencies": {
     "command-exists": "^1.2.8",
+    "follow-redirects": "^1.5.10",
     "fs-extra": "^0.30.0",
     "keccak": "^1.0.2",
     "memorystream": "^0.3.1",

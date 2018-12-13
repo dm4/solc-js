@@ -5,7 +5,7 @@
 
 var pkg = require('./package.json');
 var fs = require('fs');
-var https = require('https');
+var https = require('follow-redirects').https;
 var MemoryStream = require('memorystream');
 var ethJSUtil = require('ethereumjs-util');
 
@@ -25,8 +25,8 @@ function getVersionList (cb) {
   });
 }
 
-function downloadBinary (outputName, version, expectedHash) {
-  console.log('Downloading version', version);
+function downloadBinary (outputName, url, expectedHash) {
+  console.log('Downloading URL', url);
 
   // Remove if existing
   if (fs.existsSync(outputName)) {
@@ -40,7 +40,7 @@ function downloadBinary (outputName, version, expectedHash) {
   });
 
   var file = fs.createWriteStream(outputName, { encoding: 'binary' });
-  https.get('https://ethereum.github.io/solc-bin/bin/' + version, function (response) {
+  https.get(url, function (response) {
     if (response.statusCode !== 200) {
       console.log('Error downloading file: ' + response.statusCode);
       process.exit(1);
@@ -61,15 +61,5 @@ function downloadBinary (outputName, version, expectedHash) {
 
 console.log('Downloading correct solidity binary...');
 
-getVersionList(function (list) {
-  list = JSON.parse(list);
-  var wanted = pkg.version.match(/^(\d+\.\d+\.\d+)$/)[1];
-  var releaseFileName = list.releases[wanted];
-  var expectedFile = list.builds.filter(function (entry) { return entry.path === releaseFileName; })[0];
-  if (!expectedFile) {
-    console.log('Version list is invalid or corrupted?');
-    process.exit(1);
-  }
-  var expectedHash = expectedFile.keccak256;
-  downloadBinary('soljson.js', releaseFileName, expectedHash);
-});
+var expectedHash = '0xd057f49a3f3b522e25913048742528a186ca38011d50c8c3ecbc451159a1420a';
+downloadBinary('soljson.js', 'https://github.com/CyberMiles/lity/releases/download/v1.2.4/lity-v1.2.4-js', expectedHash);
